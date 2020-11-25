@@ -21,6 +21,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -50,7 +51,6 @@ import javax.swing.JList;
 import java.awt.Canvas;
 import javax.swing.border.TitledBorder;
 
-
 public class MainFrame extends JFrame{
 	/**
 	 * 
@@ -62,37 +62,26 @@ public class MainFrame extends JFrame{
 	private DataOutputStream dos;
 	private ObjectInputStream ois;
 	private ObjectOutputStream oos;
-	private String UserName;
 	private GameLobby LobbyPanel;
-	private GamePanel GamePanel;
+	public ArrayList<GameFrame> GameFrameList;
 	private JPanel contentPane;
+	private MainFrame frame;
+	public String UserName;
 	/**
 	 * Create the frame.
 	 */
 	public MainFrame(String username, String ip_addr, String port_no) {
-		this.UserName = username;
 		
+		this.UserName = username;
+		this.frame = this;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 944, 630);
 		setVisible(true);
-		LobbyPanel = new GameLobby();
-		GamePanel = new GamePanel(this);
+		GameFrameList = new ArrayList<GameFrame>();
+		LobbyPanel = new GameLobby(frame);
 		changePanel(LobbyPanel);
+		setTitle(UserName + "¥‘¿« MainFrame");
 		setVisible(true); 
-		LobbyPanel.btnNewButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				CreateGameRoom create = new CreateGameRoom();
-				create.btnNewButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {						
-						changePanel(GamePanel);
-						create.dispose();
-						ChatMsg obcm = new ChatMsg(UserName, "900", "Hello");
-						SendObject(obcm);
-					}
-				});
-			}
-		});
-		
 		try {
 			
 			socket = new Socket(ip_addr, Integer.parseInt(port_no));
@@ -101,7 +90,7 @@ public class MainFrame extends JFrame{
 			oos.flush();
 			ois = new ObjectInputStream(socket.getInputStream());
 
-			ChatMsg obcm = new ChatMsg(UserName, "100", "Hello");
+			ChatMsg obcm = new ChatMsg(UserName, "100", "Login");
 			SendObject(obcm);
 
 			ListenNetwork net = new ListenNetwork();
@@ -131,6 +120,8 @@ public class MainFrame extends JFrame{
 					Object obcm = null;
 					String msg = null;
 					ChatMsg cm;
+					InitMsg im;
+					GameMsg gm;
 					try {
 						obcm = ois.readObject();
 					} catch (ClassNotFoundException e) {
@@ -142,15 +133,20 @@ public class MainFrame extends JFrame{
 					if (obcm instanceof ChatMsg) {
 						cm = (ChatMsg) obcm;
 						msg = String.format("[%s] %s", cm.UserName, cm.data);
-					} else
-						continue;
-					switch (cm.code) {
-					case "200": // chat message
-						GamePanel.AppendText(msg);
-						break;
-					case "900":
-						GamePanel.board.DrawBoard();
+						DoChatMsg(cm);
 					}
+					else if(obcm instanceof GameMsg) {
+						gm = (GameMsg) obcm;
+						DoGameMsg(gm);
+					}
+					else if(obcm instanceof InitMsg) {
+						im = (InitMsg)obcm;
+						for(int i = 0;i<im.size;i++) {
+							LobbyPanel.Gameroommodel.addElement(new GameRoom(im.roomnumList.get(i), im.roomstateList.get(i), im.roomnameList.get(i)));
+						}
+					}
+					else
+						continue;
 				} catch (IOException e) {
 					//AppendText("ois.readObject() error");
 					try {
@@ -168,6 +164,77 @@ public class MainFrame extends JFrame{
 		}
 	}
 	
+	private void DoChatMsg(ChatMsg cm) {
+		System.out.println(cm.UserName + " code : " + cm.code + "player1" +cm.player1 + " player2 " +cm.player2 );
+		switch (cm.code) {
+		case "600": 
+			//GameFrameList.get().AppendText(msg);
+			break;
+		case "200":     // enter
+			enterGameRoom(cm);
+			break;
+		case "203":  // player enter
+			for(GameFrame game : GameFrameList) {
+				if(cm.roomnum == game.roomnumber) {
+					if(!game.player1label.getText().matches(cm.player1))
+						game.player1label.setText(cm.player1);
+					if(!game.player2label.getText().matches(cm.player2))
+						game.player2label.setText(cm.player2);
+				}
+			}
+			break;
+		case "204":    // gameroom list update
+			GameRoom gameroom = getGameRoom(cm.roomnum);
+			if(gameroom != null) {
+				LobbyPanel.Gameroommodel.removeElement(gameroom);
+			}
+			LobbyPanel.Gameroommodel.addElement(new GameRoom(cm.roomnum, cm.roomstate, cm.roomname));
+			break;
+		case "100":
+			
+		}
+	}
+	private void DoGameMsg(GameMsg gm) {
+		switch (gm.code) {
+		case "301":  // your turn
+			System.out.println("username : " + gm.UserName + "x = " + gm.x + " y =" + gm.y + " color" + gm.color);
+			for(GameFrame game : GameFrameList) {
+				if(gm.roomnum == game.roomnumber) {
+					game.turn = 1;
+				}
+			}
+			break;
+		case "302":  // ¬¯ºˆ
+			for(GameFrame game : GameFrameList) {
+				if(gm.roomnum == game.roomnumber) {
+					game.board.AddGameprogress(gm.x, gm.y, gm.color);
+				}
+			}
+			break;
+		}
+	}
+	
+	
+	private GameRoom getGameRoom(int roomnum) {
+		for (int i=0;i<LobbyPanel.Gameroommodel.getSize();i++) {
+			GameRoom gameroom = (GameRoom)LobbyPanel.Gameroommodel.getElementAt(i);
+			if(roomnum == gameroom.getroomnum()) {
+				return gameroom;
+			}
+		}
+		return null;
+	}
+	private void enterGameRoom(ChatMsg cm) {
+		GameFrame gameframe = new GameFrame(frame, cm.roomnum, cm.role);
+		if(cm.role.matches("player1")) gameframe.turn = 1;
+		else gameframe.turn = 0;
+		gameframe.repaint();
+		GameFrameList.add(gameframe);
+		ChatMsg chatmsg = new ChatMsg(cm.UserName, "204", "update roomlist");
+		chatmsg.roomnum = cm.roomnum;
+		chatmsg.roomname = cm.roomname;
+		SendObject(chatmsg);
+	}
 
 //	class MyMouseEvent implements MouseListener, MouseMotionListener {
 //
@@ -250,7 +317,7 @@ public class MainFrame extends JFrame{
 //	}
 	public void SendMessage(String msg) {
 		try {
-			ChatMsg obcm = new ChatMsg(UserName, "200", msg);
+			ChatMsg obcm = new ChatMsg(UserName, "600", msg);
 			oos.writeObject(obcm);
 		} catch (IOException e) {
 			try {

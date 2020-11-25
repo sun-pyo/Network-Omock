@@ -13,6 +13,8 @@ import javax.swing.JList;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -23,9 +25,12 @@ import javax.swing.JLabel;
 public class GameLobby extends JPanel {
 	
 	public JButton btnNewButton;
+	public DefaultListModel Gameroommodel;
+	private MainFrame frame;
+	public JList Gameroomlist;
 	
-	public GameLobby() {
-		
+	public GameLobby(MainFrame frame) {
+		this.frame = frame;
 		setBounds(100, 100, 885, 488);
 		setBorder(new EmptyBorder(5, 5, 5, 5));
 		setLayout(null);
@@ -34,20 +39,30 @@ public class GameLobby extends JPanel {
 		scrollPane.setBounds(22, 74, 613, 383);
 		add(scrollPane);
 		
-		JList Gameroomlist = new JList(new DefaultListModel());
+		Gameroomlist = new JList(new DefaultListModel());
 		Gameroomlist.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
 		scrollPane.setViewportView(Gameroomlist);
-		DefaultListModel Gameroommodel = (DefaultListModel) Gameroomlist.getModel();
-		Gameroommodel.addElement(new GameRoom(1,"진행중","hi"));
+		Gameroomlist.addMouseListener(new MyMouseEvent());
+		Gameroommodel = (DefaultListModel) Gameroomlist.getModel();
 		
 		
 		btnNewButton = new JButton("방 만들기");
 		btnNewButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
+			public void actionPerformed(ActionEvent e) {
+				CreateGameRoom create = new CreateGameRoom();
+				create.btnNewButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {						
+						create.dispose();
+						ChatMsg obcm = new ChatMsg(frame.UserName, "200", "create Room");
+						obcm.roomname = create.textField.getText();
+						frame.SendObject(obcm);
+					}
+				});
 			}
 		});
 		btnNewButton.setBounds(658, 25, 188, 32);
 		add(btnNewButton);
+		
 		
 		JScrollPane scrollPane_1 = new JScrollPane();
 		scrollPane_1.setBounds(658, 74, 188, 383);
@@ -63,4 +78,39 @@ public class GameLobby extends JPanel {
 		setVisible(true);
 		
 	}
+	class MyMouseEvent implements MouseListener{
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			if(e.getClickCount() == 2) {
+				GameRoom gameroom= (GameRoom) Gameroomlist.getSelectedValue();
+				ChatMsg obcm = new ChatMsg(frame.UserName, "201", "enter Room");
+				obcm.roomnum = gameroom.getroomnum();
+				obcm.roomname = gameroom.getroomname();
+				frame.SendObject(obcm);
+			}
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void mouseExited(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void mousePressed(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent arg0) {
+			// TODO Auto-generated method stub		
+		}
+		
+	}
+	
 }

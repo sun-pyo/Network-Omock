@@ -1,8 +1,8 @@
 
 public class Stone {
-	private int x,y, color, Stonesize;
+	private int x,y, Stonesize;
 	private float opacity;
-	
+	private int color;
 	public Stone(int x, int y, int color ) {
 		this.x = x;
 		this.y = y;
