@@ -16,7 +16,7 @@ class ChatMsg implements Serializable {
 	public String roomname;
 	public String roomstate;
 	public String player1, player2, role;
-	
+	public boolean start;
 	
 	public ChatMsg(String UserName, String code, String msg) {
 		this.code = code;

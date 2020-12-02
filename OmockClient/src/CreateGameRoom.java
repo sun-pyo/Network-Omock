@@ -19,6 +19,7 @@ public class CreateGameRoom extends JFrame {
 	private JTextField textField_1;
 	public JButton btnNewButton;
 	private MainFrame frame;
+	public JRadioButton rdbtnNewRadioButton_1;
 	
 	public CreateGameRoom() {
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -28,7 +29,7 @@ public class CreateGameRoom extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
-		JRadioButton rdbtnNewRadioButton_1 = new JRadioButton("관전 허용");
+		rdbtnNewRadioButton_1 = new JRadioButton("관전 허용");
 		rdbtnNewRadioButton_1.setFont(new Font("나눔고딕", Font.BOLD, 14));
 		rdbtnNewRadioButton_1.setBounds(23, 133, 113, 39);
 		contentPane.add(rdbtnNewRadioButton_1);

@@ -5,12 +5,18 @@ public class GameRoom {
 	private String roomname, roomstate;
 	public String player1 = null, player2 = null;
 	public ArrayList<String> Observer = new ArrayList<>();
+	public int[][] map = new int[19][19];
+	public ArrayList<Stone> Gameprogress = new ArrayList<Stone>();
+	public boolean watching; //관전 가능 여부 
+	public boolean start; // 게임 시작 여부
+
 	
 	public GameRoom(int roomnum, String roomstate, String roomname) {
 		this.roomnum = roomnum;
 		this.roomstate = roomstate;
 		this.roomname = roomname;
 	}
+	
 	public String getotherplyer(String myname) {
 		if(player1.matches(myname)) {
 			return player2;
@@ -53,14 +59,17 @@ public class GameRoom {
 	}
 	
 	public void setstate() {
-		if(this.player1 == null) {
-			this.roomstate = "빈 방";
+		if(this.player1 != null && this.player2 != null) {
+			if(watching)
+				this.roomstate = "관전가능";
+			else
+				this.roomstate = "입장불가";
 		}
-		else if(this.player2 == null) {
+		else if(this.player1 != null || this.player2 != null){
 			this.roomstate = "대기중";
 		}
 		else {
-			this.roomstate = "진행중";
+			this.roomstate = "none";
 		}
 	}
 	

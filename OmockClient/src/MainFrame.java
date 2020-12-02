@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Map;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -48,6 +49,8 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.JToggleButton;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
+
 import java.awt.Canvas;
 import javax.swing.border.TitledBorder;
 
@@ -75,7 +78,7 @@ public class MainFrame extends JFrame{
 		this.UserName = username;
 		this.frame = this;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 944, 630);
+		setBounds(100, 100, 895, 518);
 		setVisible(true);
 		GameFrameList = new ArrayList<GameFrame>();
 		LobbyPanel = new GameLobby(frame);
@@ -144,6 +147,9 @@ public class MainFrame extends JFrame{
 						for(int i = 0;i<im.size;i++) {
 							LobbyPanel.Gameroommodel.addElement(new GameRoom(im.roomnumList.get(i), im.roomstateList.get(i), im.roomnameList.get(i)));
 						}
+						for(String u : im.UserList) {
+							LobbyPanel.Usermodel.addElement(u);
+						}
 					}
 					else
 						continue;
@@ -165,20 +171,63 @@ public class MainFrame extends JFrame{
 	}
 	
 	private void DoChatMsg(ChatMsg cm) {
-		System.out.println(cm.UserName + " code : " + cm.code + "player1" +cm.player1 + " player2 " +cm.player2 );
+		System.out.println(cm.UserName + " code : " + cm.code + " player1 " +cm.player1 + " player2 " +cm.player2 );
 		switch (cm.code) {
+		case "101":
+			if(!UserName.matches(cm.UserName))
+				LobbyPanel.Usermodel.addElement(cm.UserName);
+			break;
+		case "102":
+			LobbyPanel.Usermodel.removeElement(cm.UserName);
+			break;
 		case "600": 
-			//GameFrameList.get().AppendText(msg);
+			for(GameFrame game : GameFrameList) {
+				if(cm.roomnum == game.roomnumber) {
+					if(UserName.matches(cm.UserName)) {
+						String msg = cm.data;
+						game.AppendTextR(msg);						
+					}
+					else {
+						String msg = cm.UserName + ":" + cm.data;
+						game.AppendText(msg);
+					}
+				}
+			}
 			break;
 		case "200":     // enter
 			enterGameRoom(cm);
 			break;
-		case "203":  // player enter
+		case "203":  // player update
 			for(GameFrame game : GameFrameList) {
 				if(cm.roomnum == game.roomnumber) {
-					if(!game.player1label.getText().matches(cm.player1))
+					if(game.role.matches("observer")) {
+						game.state = 0;
+						game.board.startpanel.setVisible(false);
+					}
+					else if(cm.start) {
+						game.state = 1;
+						game.board.startpanel.setVisible(false);
+					}else {
+						game.state = 0;
+						game.board.startpanel.setVisible(true);
+					}
+					
+					if(cm.data.matches("enter")) {
+						if(!UserName.matches(cm.UserName))
+							game.AppendText("[SERVICE] " + cm.UserName + "님이 입장하셨습니다.");
+						else
+							game.AppendText("[SERVICE] " + cm.roomnum +"번 방에 입장하셨습니다.");
+					}
+					else if(cm.data.matches("exit"))
+						game.AppendText("[SERVICE] " + cm.UserName + "님이 퇴장하셨습니다.");
+					
+					if(cm.player1 == null)
+						game.player1label.setText(" ");
+					else if(!game.player1label.getText().matches(cm.player1))
 						game.player1label.setText(cm.player1);
-					if(!game.player2label.getText().matches(cm.player2))
+					if(cm.player2 == null)
+						game.player2label.setText(" ");
+					else if(cm.player2 != null && !game.player2label.getText().matches(cm.player2))
 						game.player2label.setText(cm.player2);
 				}
 			}
@@ -190,14 +239,40 @@ public class MainFrame extends JFrame{
 			}
 			LobbyPanel.Gameroommodel.addElement(new GameRoom(cm.roomnum, cm.roomstate, cm.roomname));
 			break;
-		case "100":
-			
+		case "205":
+			for(GameFrame game : GameFrameList) {
+				if(cm.roomnum == game.roomnumber) {
+					GameFrameList.remove(game);
+					break;
+				}
+			}
+			break;
+		case "206":
+			GameRoom room = getGameRoom(cm.roomnum);
+			if(room != null)
+				LobbyPanel.Gameroommodel.removeElement(room);
+			for(GameFrame game : GameFrameList) {
+				if(cm.roomnum == game.roomnumber) {
+					//game.dispose();
+					GameFrameList.remove(game);
+					break;
+				}
+			}
+			break;
 		}
 	}
 	private void DoGameMsg(GameMsg gm) {
 		switch (gm.code) {
+		case "300":
+			for(GameFrame game : GameFrameList) {
+				game.board.ResetBoard();
+				game.board.endpanel.setVisible(false);
+				game.board.startpanel.setVisible(false);
+				game.state = 1;
+			}
+			break;
 		case "301":  // your turn
-			System.out.println("username : " + gm.UserName + "x = " + gm.x + " y =" + gm.y + " color" + gm.color);
+			//System.out.println("username : " + gm.UserName + "x = " + gm.x + " y =" + gm.y + " color" + gm.color);
 			for(GameFrame game : GameFrameList) {
 				if(gm.roomnum == game.roomnumber) {
 					game.turn = 1;
@@ -205,6 +280,60 @@ public class MainFrame extends JFrame{
 			}
 			break;
 		case "302":  // 착수
+			for(GameFrame game : GameFrameList) {
+				if(gm.roomnum == game.roomnumber) {
+					game.board.AddGameprogress(gm.x, gm.y, gm.color);
+				}
+			}
+			break;
+		case "400":
+			for(GameFrame game : GameFrameList) {
+				if(gm.roomnum == game.roomnumber) {
+					game.state = 0;
+					game.board.panel.setVisible(true);
+					break;
+				}
+			}
+			break;
+		case "402":
+			for(GameFrame game : GameFrameList) {
+				if(gm.roomnum == game.roomnumber) {
+					game.state = 1;
+					break;
+				}
+			}
+			break;
+		case "501":
+			for(GameFrame game : GameFrameList) {
+				if(gm.roomnum == game.roomnumber) {
+					game.state = 0;
+					game.turn = 0;
+					game.board.endpanel.setVisible(true);
+					game.board.endLabel.setText("승리");
+				}
+			}
+			break;
+		case "502":
+			for(GameFrame game : GameFrameList) {
+				if(gm.roomnum == game.roomnumber) {
+					game.state = 0;
+					game.turn = 0;
+					game.board.endpanel.setVisible(true);
+					game.board.endLabel.setText("패배");
+				}
+			}
+			break;
+		case "503":
+			for(GameFrame game : GameFrameList) {
+				if(gm.roomnum == game.roomnumber) {
+					game.state = 0;
+					game.turn = 0;
+					game.board.endpanel.setVisible(true);
+					game.board.endLabel.setText("무승부");
+				}
+			}
+			break;
+		case "800":
 			for(GameFrame game : GameFrameList) {
 				if(gm.roomnum == game.roomnumber) {
 					game.board.AddGameprogress(gm.x, gm.y, gm.color);
@@ -226,8 +355,15 @@ public class MainFrame extends JFrame{
 	}
 	private void enterGameRoom(ChatMsg cm) {
 		GameFrame gameframe = new GameFrame(frame, cm.roomnum, cm.role);
-		if(cm.role.matches("player1")) gameframe.turn = 1;
-		else gameframe.turn = 0;
+		if(cm.role.matches("observer")) {
+			gameframe.turn = 0;
+			gameframe.state = 0;
+			gameframe.board.endpanel.setVisible(false);
+		}
+		else {
+			gameframe.turn = 0;
+		}
+		
 		gameframe.repaint();
 		GameFrameList.add(gameframe);
 		ChatMsg chatmsg = new ChatMsg(cm.UserName, "204", "update roomlist");
@@ -236,85 +372,6 @@ public class MainFrame extends JFrame{
 		SendObject(chatmsg);
 	}
 
-//	class MyMouseEvent implements MouseListener, MouseMotionListener {
-//
-//		@Override
-//		public void mouseDragged(MouseEvent e) {
-//			// TODO Auto-generated method stub
-//			int x = e.getX();
-//			int y = e.getY();
-//			//panel.AddGameprogress(x, y, 1);
-//		}
-//
-//		@Override
-//		public void mouseMoved(MouseEvent e) {
-//			// TODO Auto-generated method stub
-//		}
-//
-//		@Override
-//		public void mouseClicked(MouseEvent e) {
-//			// TODO Auto-generated method stub
-//			int x = e.getX();
-//			int y = e.getY();
-//			panel.AddGameprogress(x, y, 1);
-//		}
-//
-//		@Override
-//		public void mouseEntered(MouseEvent arg0) {
-//			// TODO Auto-generated method stub
-//			
-//		}
-//
-//		@Override
-//		public void mouseExited(MouseEvent arg0) {
-//			// TODO Auto-generated method stub
-//			
-//		}
-//
-//		@Override
-//		public void mousePressed(MouseEvent e) {
-//			// TODO Auto-generated method stub
-//			int x = e.getX();
-//			int y = e.getY();
-//			panel.AddGameprogress(x, y, 0);
-//		}
-//
-//		@Override
-//		public void mouseReleased(MouseEvent arg0) {
-//			// TODO Auto-generated method stub
-//		}
-//		
-//	}
-//
-//	// 화면에 출력
-//	public void AppendText(String msg) {
-//		// textArea.append(msg + "\n");
-//		// AppendIcon(icon1);
-//		msg = msg.trim(); // 앞뒤 blank와 \n을 제거한다.
-//		int len = textArea.getDocument().getLength();
-//		// 끝으로 이동
-//		textArea.setCaretPosition(len);
-//		textArea.replaceSelection(msg + "\n");
-//	}
-//
-//	// Windows 처럼 message 제외한 나머지 부분은 NULL 로 만들기 위한 함수
-//	public byte[] MakePacket(String msg) {
-//		byte[] packet = new byte[BUF_LEN];
-//		byte[] bb = null;
-//		int i;
-//		for (i = 0; i < BUF_LEN; i++)
-//			packet[i] = 0;
-//		try {
-//			bb = msg.getBytes("euc-kr");
-//		} catch (UnsupportedEncodingException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//			System.exit(0);
-//		}
-//		for (i = 0; i < bb.length; i++)
-//			packet[i] = bb[i];
-//		return packet;
-//	}
 	public void SendMessage(String msg) {
 		try {
 			ChatMsg obcm = new ChatMsg(UserName, "600", msg);

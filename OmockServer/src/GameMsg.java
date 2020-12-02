@@ -7,6 +7,8 @@ public class GameMsg implements Serializable{
 	public String UserName;
 	public int roomnum;
 	public int x,y, color;
+	public boolean start;
+	
 	
 	public GameMsg(String UserName, String code, int roomnum, int x, int y, int color) {
 		this.code = code;
