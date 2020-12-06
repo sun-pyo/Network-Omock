@@ -354,7 +354,7 @@ public class GameFrame extends JFrame{
 				if(turn==1) {
 					int x = (int)Math.round(e.getX()/28);
 					int y = (int)Math.round(e.getY()/28);
-					if(board.check(x, y)) {
+					if(board.check(x, y) && !board.is_ban(x,y)) {
 					GameMsg gm = new GameMsg(frame.UserName,"302",roomnumber, x, y, stonecolor); //Âø¼ö
 					frame.SendObject(gm);
 					turn = 0;

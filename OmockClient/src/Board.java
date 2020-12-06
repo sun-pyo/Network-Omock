@@ -193,6 +193,7 @@ public class Board extends JPanel {
 		return false;
 	}
 	
+	
 	public void AddGameprogress(int x, int y, int color) {
 		if(check(x,y)) {
 			Stone s = new Stone(x,y,color);
@@ -201,6 +202,471 @@ public class Board extends JPanel {
 			repaint();
 		}
 	}
+	
+	public boolean is_ban(int x,int y) {
+		if(frame.stonecolor == COLOR.BLACK) {
+			int is_44_or_6 = is_44_6(x,y);
+			if(is_33(x,y)) {
+				frame.AppendText("[SERVICE] (3,3)금수로 둘 수 없습니다.");
+				return true;
+			}
+			else if(is_44_or_6 == 4) {
+				frame.AppendText("[SERVICE] (4,4)금수로 둘 수 없습니다.");
+				return true;	
+			}
+			else if(is_44_or_6 == 6) {
+				frame.AppendText("[SERVICE] 장목(6목이상)금수로 둘 수 없습니다.");
+				return true;	
+			}
+		}
+		return false;
+	}
+	public int is_44_6(int x, int y) {
+		int blank_count = 0, count= 0;
+		int stone_count = 0, xx = x, yy = y;
+		int check_4[] = new int[3];
+		int check_6 = 0;
+		
+		// 우측 
+		while(true) {
+			xx++;
+			if(xx < 0 || xx >= 19 || yy < 0 || yy >= 19) {
+				check_4[blank_count] = stone_count;
+				break;
+			}
+			if(map[yy][xx] == 0)
+			{
+				check_4[blank_count] = stone_count;
+				blank_count++;
+				if(blank_count == 2) {
+					blank_count--;
+					break;
+				}else if(xx+1 < 19 && map[yy][xx+1] == 0) {
+					blank_count--;
+					break;
+				}
+				continue;
+			}
+			if(map[yy][xx] == COLOR.WHITE) {
+				check_4[blank_count] = stone_count;
+				break;
+			}
+			if(blank_count == 0) check_6++;
+			stone_count++;
+		}
+		// 좌측
+		for(int j = blank_count;j>=0;j--) {
+			stone_count = 0;
+			yy = y;
+			xx = x;
+			blank_count = j;
+			while(true) {
+				xx--;
+				if(xx < 0 || xx >= 19 || yy < 0 || yy >= 19) {
+					check_4[j] += stone_count;
+					break;
+				}
+				if(map[yy][xx] == 0)
+				{
+					blank_count++;
+					if(blank_count == 2) {
+						check_4[j] += stone_count;
+						blank_count--;
+						break;
+					}
+					continue;
+				}
+				if(map[yy][xx] == COLOR.WHITE) {
+					check_4[j] += stone_count;
+					break;
+				}
+				if(blank_count == 0) check_6++;
+				stone_count++;
+			}
+			if(check_4[j] == 3) {
+				count++;
+				break;
+			}
+			System.out.println(check_6);
+			if(check_6 >= 5) {
+				return 6;
+			}
+			
+		}
+		
+		// 위
+		blank_count = 0;
+		stone_count = 0;
+		xx = x;
+		yy = y;
+		check_4[0] = check_4[1] = check_4[2] = 0;
+		check_6 = 0;
+		while(true) {
+			yy++;
+			if(xx < 0 || xx >= 19 || yy < 0 || yy >= 19) {
+				check_4[blank_count] = stone_count;
+				break;
+			}
+			if(map[yy][xx] == 0)
+			{
+				check_4[blank_count] = stone_count;
+				blank_count++;
+				if(blank_count == 2) {
+					blank_count--;
+					break;
+				}else if(yy+1 < 19 && map[yy+1][xx] == 0) {
+					blank_count--;
+					break;
+				}
+				continue;
+			}
+			if(map[yy][xx] == COLOR.WHITE) {
+				check_4[blank_count] = stone_count;
+				break;
+			}
+			if(blank_count == 0) check_6++;
+			stone_count++;
+		}
+		// 아래
+		for(int j = blank_count;j>=0;j--) {
+			stone_count = 0;
+			yy = y;
+			xx = x;
+			blank_count = j;
+			while(true) {
+				yy--;
+				if(xx < 0 || xx >= 19 || yy < 0 || yy >= 19) {
+					check_4[j] += stone_count;
+					break;
+				}
+				if(map[yy][xx] == 0)
+				{
+					blank_count++;
+					if(blank_count == 2) {
+						check_4[j] += stone_count;
+						blank_count--;
+						break;
+					}
+					continue;
+				}
+				if(map[yy][xx] == COLOR.WHITE) {
+					check_4[j] += stone_count;
+					break;
+				}
+				if(blank_count == 0) check_6++;
+				stone_count++;
+			}
+			if(check_4[j] == 3) {
+				count++;
+				break;
+			}
+			System.out.println(check_6);
+			if(check_6 >= 5) {
+				return 6;
+			}
+			
+		}
+		
+		
+		// \대각 우측
+		blank_count = 0;
+		stone_count = 0;
+		xx = x;
+		yy = y;
+		check_4[0] = check_4[1] = check_4[2] = 0;
+		check_6 = 0;
+		while(true) {
+			yy++;
+			xx++;
+			if(xx < 0 || xx >= 19 || yy < 0 || yy >= 19) {
+				check_4[blank_count] = stone_count;
+				break;
+			}
+			if(map[yy][xx] == 0)
+			{
+				check_4[blank_count] = stone_count;
+				blank_count++;
+				if(blank_count == 2) {
+					blank_count--;
+					break;
+				}else if(xx+1 < 19 && yy+1 < 19 && map[yy+1][xx+1] == 0) {
+					blank_count--;
+					break;
+				}
+				continue;
+			}
+			if(map[yy][xx] == COLOR.WHITE) {
+				check_4[blank_count] = stone_count;
+				break;
+			}
+			if(blank_count == 0) check_6++;
+			stone_count++;
+		}
+		// \대각 좌측
+		for(int j = blank_count;j>=0;j--) {
+			stone_count = 0;
+			yy = y;
+			xx = x;
+			blank_count = j;
+			while(true) {
+				yy--;
+				xx--;
+				if(xx < 0 || xx >= 19 || yy < 0 || yy >= 19) {
+					check_4[j] += stone_count;
+					break;
+				}
+				if(map[yy][xx] == 0)
+				{
+					blank_count++;
+					if(blank_count == 2) {
+						check_4[j] += stone_count;
+						blank_count--;
+						break;
+					}
+					continue;
+				}
+				if(map[yy][xx] == COLOR.WHITE) {
+					check_4[j] += stone_count;
+					break;
+				}
+				if(blank_count == 0) check_6++;
+				stone_count++;
+			}
+			if(check_4[j] == 3) {
+				count++;
+				break;
+			}
+			System.out.println(check_6);
+			if(check_6 >= 5) {
+				return 6;
+			}
+			
+		}
+		
+		
+		// /대각 우측
+		blank_count = 0;
+		stone_count = 0;
+		xx = x;
+		yy = y;
+		check_4[0] = check_4[1] = check_4[2] = 0;
+		check_6 = 0;
+		while(true) {
+			yy--;
+			xx++;
+			if(xx < 0 || xx >= 19 || yy < 0 || yy >= 19) {
+				check_4[blank_count] = stone_count;
+				break;
+			}
+			if(map[yy][xx] == 0)
+			{
+				check_4[blank_count] = stone_count;
+				blank_count++;
+				if(blank_count == 2) {
+					blank_count--;
+					break;
+				}else if(xx+1 < 19 && yy-1 >= 0 && map[yy-1][xx+1] == 0) {
+					blank_count--;
+					break;
+				}
+				continue;
+			}
+			if(map[yy][xx] == COLOR.WHITE) {
+				check_4[blank_count] = stone_count;
+				break;
+			}
+			if(blank_count == 0) check_6++;
+			stone_count++;
+		}
+		// /대각 좌측
+		for(int j = blank_count;j>=0;j--) {
+			stone_count = 0;
+			yy = y;
+			xx = x;
+			blank_count = j;
+			while(true) {
+				yy++;
+				xx--;
+				if(xx < 0 || xx >= 19 || yy < 0 || yy >= 19) {
+					check_4[j] += stone_count;
+					break;
+				}
+				if(map[yy][xx] == 0)
+				{
+					blank_count++;
+					if(blank_count == 2) {
+						check_4[j] += stone_count;
+						blank_count--;
+						break;
+					}
+					continue;
+				}
+				if(map[yy][xx] == COLOR.WHITE) {
+					check_4[j] += stone_count;
+					break;
+				}
+				if(blank_count == 0) check_6++;
+				stone_count++;
+			}
+			if(check_4[j] == 3) {
+				count++;
+				break;
+			}
+			System.out.println(check_6);
+			if(check_6 >= 5) {
+				return 6;
+			}
+		}
+		
+		
+		if(count>=2) return 4;
+		else return 0;
+		
+	}
+	public boolean is_33(int x, int y) {
+	  /* 
+	     x : 빈공간, ○ : (x,y) , ● : 놓여진 흑돌  
+	     x○●●x
+		 x○x●●x
+		 x○●x●x
+		 x●○●x
+		 x●○x●x
+	 */
+		
+	// x○●●x
+	int count = 0;
+	if(x-1 >= 0 && x+3 < 19 && map[y][x-1] == 0 && map[y][x+1] == COLOR.BLACK && map[y][x+2] == COLOR.BLACK && map[y][x+3] == 0) {
+		count++;
+	}
+	if(x-3 >= 0 && x+1 < 19 && map[y][x-3] == 0 && map[y][x-2] == COLOR.BLACK && map[y][x-1] == COLOR.BLACK && map[y][x+1] == 0) {
+		count++;
+	}
+	if(y-1 >= 0 && y+3 < 19 && map[y-1][x] == 0 && map[y+1][x] == COLOR.BLACK && map[y+2][x] == COLOR.BLACK && map[y+3][x] == 0) {
+		count++;
+	}
+	if(y-3 >= 0 && y+1 < 19 && map[y-3][x] == 0 && map[y-2][x] == COLOR.BLACK && map[y-1][x] == COLOR.BLACK && map[y+1][x] == 0) {
+		count++;
+	}
+	if( y-1 >= 0 && y+3 < 19 && x-1 >= 0 && x+3 < 19 && map[y-1][x-1] == 0 && map[y+1][x+1] == COLOR.BLACK && map[y+2][x+2] == COLOR.BLACK && map[y+3][x+3] == 0) {
+		count++;
+	}
+	if( y-3 >= 0 && y+1 < 19 && x-3 >= 0 && x+1 < 19 && map[y+1][x+1] == 0 && map[y-1][x-1] == COLOR.BLACK && map[y-2][x-2] == COLOR.BLACK && map[y-3][x-3] == 0) {
+		count++;
+	}
+	if( y-1 >= 0 && y+3 < 19 && x-3 >= 0 && x+1 < 19 && map[y-1][x+1] == 0 && map[y+1][x-1] == COLOR.BLACK && map[y+2][x-2] == COLOR.BLACK && map[y+3][x-3] == 0) {
+		count++;
+	}
+	if( y-3 >= 0 && y+1 < 19 && x-1 >= 0 && x+3 < 19 && map[y+1][x-1] == 0 && map[y-1][x+1] == COLOR.BLACK && map[y-2][x+2] == COLOR.BLACK && map[y-3][x+3] == 0) {
+		count++;
+	}
+	
+	//x○x●●x
+	if( x-1 >= 0 && x+4 < 19 && map[y][x-1] == 0 && map[y][x+1] == 0 && map[y][x+2] == COLOR.BLACK && map[y][x+3] == COLOR.BLACK && map[y][x+4] == 0) {
+		count++;
+	}
+	if( x-4 >= 0 && x+1 < 19 && map[y][x+1] == 0 && map[y][x-1] == 0 && map[y][x-2] == COLOR.BLACK && map[y][x-3] == COLOR.BLACK && map[y][x-4] == 0) {
+		count++;
+	}
+	if( y-1 >= 0 && y+4 < 19 && map[y-1][x] == 0 && map[y+1][x] == 0 && map[y+2][x] == COLOR.BLACK && map[y+3][x] == COLOR.BLACK && map[y+4][x] == 0) {
+		count++;
+	}
+	if( y-4 >= 0 && y+1 < 19 && map[y+1][x] == 0 && map[y-1][x] == 0 && map[y-2][x] == COLOR.BLACK && map[y-3][x] == COLOR.BLACK && map[y-4][x] == 0) {
+		count++;
+	}
+	if( y-1 >= 0 && y+4 < 19 && x-1 >= 0 && x+4 < 19 && map[y-1][x-1] == 0 && map[y+1][x+1] == 0 && map[y+2][x+2] == COLOR.BLACK && map[y+3][x+3] == COLOR.BLACK && map[y+4][x+4] == 0) {
+		count++;
+	}
+	if( y-4 >= 0 && y+1 < 19 && x-4 >= 0 && x+1 < 19 && map[y+1][x+1] == 0 && map[y-1][x-1] == 0 && map[y-2][x-2] == COLOR.BLACK && map[y-3][x-3] == COLOR.BLACK && map[y-4][x-4] == 0) {
+		count++;
+	}
+	if( y-1 >= 0 && y+4 < 19 && x-4 >= 0 && x+1 < 19 && map[y-1][x+1] == 0 && map[y+1][x-1] == 0 && map[y+2][x-2] == COLOR.BLACK && map[y+3][x-3] == COLOR.BLACK && map[y+4][x-4] == 0) {
+		count++;
+	}
+	if( y-4 >= 0 && y+1 < 19 && x-1 >= 0 && x+4 < 19 && map[y+1][x-1] == 0 && map[y-1][x+1] == 0 && map[y-2][x+2] == COLOR.BLACK && map[y-3][x+3] == COLOR.BLACK && map[y-4][x+4] == 0) {
+		count++;
+	}
+	
+	//x○●x●x
+	if( x-1 >= 0 && x+4 < 19 && map[y][x-1] == 0 && map[y][x+1] == COLOR.BLACK && map[y][x+2] == 0 && map[y][x+3] == COLOR.BLACK && map[y][x+4] == 0) {
+		count++;
+	}
+	if( x-4 >= 0 && x+1 < 19 && map[y][x+1] == 0 && map[y][x-1] == COLOR.BLACK && map[y][x-2] == 0 && map[y][x-3] == COLOR.BLACK && map[y][x-4] == 0) {
+		count++;
+	}
+	if( y-1 >= 0 && y+4 < 19 && map[y-1][x] == 0 && map[y+1][x] == COLOR.BLACK && map[y+2][x] == 0 && map[y+3][x] == COLOR.BLACK && map[y+4][x] == 0) {
+		count++;
+	}
+	if( y-4 >= 0 && y+1 < 19 && map[y+1][x] == 0 && map[y-1][x] == COLOR.BLACK && map[y-2][x] == 0 && map[y-3][x] == COLOR.BLACK && map[y-4][x] == 0) {
+		count++;
+	}
+	if( y-1 >= 0 && y+4 < 19 && x-1 >= 0 && x+4 < 19 && map[y-1][x-1] == 0 && map[y+1][x+1] == COLOR.BLACK && map[y+2][x+2] == 0 && map[y+3][x+3] == COLOR.BLACK && map[y+4][x+4] == 0) {
+		count++;
+	}
+	if( y-4 >= 0 && y+1 < 19 && x-4 >= 0 && x+1 < 19 && map[y+1][x+1] == 0 && map[y-1][x-1] == COLOR.BLACK && map[y-2][x-2] == 0 && map[y-3][x-3] == COLOR.BLACK && map[y-4][x-4] == 0) {
+		count++;
+	}
+	if( y-1 >= 0 && y+4 < 19 && x-4 >= 0 && x+1 < 19 && map[y-1][x+1] == 0 && map[y+1][x-1] == COLOR.BLACK && map[y+2][x-2] == 0 && map[y+3][x-3] == COLOR.BLACK && map[y+4][x-4] == 0) {
+		count++;
+	}
+	if( y-4 >= 0 && y+1 < 19 && x-1 >= 0 && x+4 < 19 && map[y+1][x-1] == 0 && map[y-1][x+1] == COLOR.BLACK && map[y-2][x+2] == 0 && map[y-3][x+3] == COLOR.BLACK && map[y-4][x+4] == 0) {
+		count++;
+	}
+	
+	// x●○●x
+	if( x-2 >= 0 && x+2 < 19 && map[y][x-2] == 0 && map[y][x-1] == COLOR.BLACK && map[y][x+1] == COLOR.BLACK && map[y][x+2] == 0) {
+		count++;
+		if(x-3 >=0 && map[y][x-3] == COLOR.BLACK) count--;
+		else if(x+3 <19 && map[y][x+3] == COLOR.BLACK) count--;
+	}
+	if( y-2 >= 0 && y+2 < 19 && map[y-2][x] == 0 && map[y-1][x] == COLOR.BLACK && map[y+1][x] == COLOR.BLACK && map[y+2][x] == 0) {
+		count++;
+		if(y-3 >=0 && map[y-3][x] == COLOR.BLACK) count--;
+		else if(y+3 <19 && map[y+3][x] == COLOR.BLACK) count--;
+	}
+	if( y-2 >= 0 && y+2 < 19 && x-2 >= 0 && x+2 < 19 && map[y-2][x-2] == 0 && map[y-1][x-1] == COLOR.BLACK && map[y+1][x+1] == COLOR.BLACK && map[y+2][x+2] == 0) {
+		count++;
+		if(x+3 <19 && y+3 < 19 && map[y+3][x+3] == COLOR.BLACK) count--;
+		else if(x-3 >=0 && y-3 >=0 && map[y-3][x-3] == COLOR.BLACK) count--;
+	}
+	if( y-2 >= 0 && y+2 < 19 && x-2 >= 0 && x+2 < 19 && map[y-2][x+2] == 0 && map[y-1][x+1] == COLOR.BLACK && map[y+1][x-1] == COLOR.BLACK && map[y+2][x-2] == 0) {
+		count++;
+		if(x-3 >=0 && y+3 < 19 && map[y+3][x-3] == COLOR.BLACK) count--;
+		else if(y-3 >=0 && x+3 < 19 && map[y-3][x+3] == COLOR.BLACK) count--;
+	}
+	
+	// x●○x●x
+	if( x-2 >= 0 && x+3 < 19 && map[y][x-2] == 0 && map[y][x-1] == COLOR.BLACK && map[y][x+1] == 0 && map[y][x+2] == COLOR.BLACK && map[y][x+3] == 0) {
+		count++;
+	}
+	if( x-3 >= 0 && x+2 < 19 && map[y][x+2] == 0 && map[y][x+1] == COLOR.BLACK && map[y][x-1] == 0 && map[y][x-2] == COLOR.BLACK && map[y][x-3] == 0) {
+		count++;
+	}
+	if( y-2 >= 0 && y+3 < 19 && map[y-2][x] == 0 && map[y-1][x] == COLOR.BLACK && map[y+1][x] == 0 && map[y+2][x] == COLOR.BLACK && map[y+3][x] == 0) {
+		count++;
+	}
+	if(  y-3 >= 0 && y+2 < 19 && map[y+2][x] == 0 && map[y+1][x] == COLOR.BLACK && map[y-1][x] == 0 && map[y-2][x] == COLOR.BLACK && map[y-3][x] == 0) {
+		count++;
+	}
+	if( y-2 >= 0 && y+3 < 19 && x-2 >= 0 && x+3 < 19 && map[y-2][x-2] == 0 && map[y-1][x-1] == COLOR.BLACK && map[y+1][x+1] == 0 && map[y+2][x+2] == COLOR.BLACK && map[y+3][x+3] == 0) {
+		count++;
+	}
+	if( y-3 >= 0 && y+2 < 19 && x-3 >= 0 && x+2 < 19 && map[y+2][x+2] == 0 && map[y+1][x+1] == COLOR.BLACK && map[y-1][x-1] == 0 && map[y-2][x-2] == COLOR.BLACK && map[y-3][x-3] == 0) {
+		count++;
+	}
+	if( y-2 >= 0 && y+3 < 19 && x-3 >= 0 && x+2 < 19 && map[y-2][x+2] == 0 && map[y-1][x+1] == COLOR.BLACK && map[y+1][x-1] == 0 && map[y+2][x-2] == COLOR.BLACK && map[y+3][x-3] == 0) {
+		count++;
+	}
+	if( y-3 >= 0 && y+2 < 19 && x-2 >= 0 && x+3 < 19 && map[y+2][x-2] == 0 && map[y+1][x-1] == COLOR.BLACK && map[y-1][x+1] == 0 && map[y-2][x+2] == COLOR.BLACK && map[y-3][x+3] == 0) {
+		count++;
+	}
+	
+	if(count >= 2) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
 
 	
 	public void paint(Graphics g) {
