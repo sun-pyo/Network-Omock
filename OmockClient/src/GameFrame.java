@@ -83,11 +83,14 @@ public class GameFrame extends JFrame{
 	private JButton btnNewButton_1;
 	private JButton btnNewButton_2;
 	public int state;
+	public JLabel player1_time, player2_time;
+	public String time;
 	
-	public GameFrame(MainFrame frame, int roomnum, String role) {
+	public GameFrame(MainFrame frame, int roomnum, String role, String time) {
 		this.frame = frame;
 		this.roomnumber = roomnum;
 		this.role = role;
+		this.time = time;
 		
 		setTitle(String.format("%s´ÔÀÇ GameFrame\t%150d¹ø¹æ",frame.UserName ,roomnum));
 		setVisible(true);
@@ -231,15 +234,15 @@ public class GameFrame extends JFrame{
 		contentPane.add(panel);
 		panel.setLayout(null);
 		
-		JLabel player1_time = new JLabel("30");
+		player1_time = new JLabel(this.time);
 		player1_time.setBounds(70, 21, 76, 20);
-		player1_time.setFont(new Font("³ª´®°íµñ ExtraBold", Font.BOLD, 17));
+		player1_time.setFont(new Font("³ª´®°íµñ ExtraBold", Font.PLAIN, 13));
 		player1_time.setForeground(Color.BLACK);
 		panel.add(player1_time);
 		
-		JLabel player2_time = new JLabel("30");
+		player2_time = new JLabel(this.time);
 		player2_time.setForeground(Color.BLACK);
-		player2_time.setFont(new Font("³ª´®°íµñ ExtraBold", Font.BOLD, 17));
+		player2_time.setFont(new Font("³ª´®°íµñ ExtraBold", Font.PLAIN, 13));
 		player2_time.setBounds(264, 21, 76, 20);
 		panel.add(player2_time);
 		

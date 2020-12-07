@@ -16,7 +16,7 @@ import java.awt.event.ActionEvent;
 public class CreateGameRoom extends JFrame {
 	private JPanel contentPane;
 	public JTextField textField;
-	private JTextField textField_1;
+	public JTextField textField_1;
 	public JButton btnNewButton;
 	private MainFrame frame;
 	public JRadioButton rdbtnNewRadioButton_1;

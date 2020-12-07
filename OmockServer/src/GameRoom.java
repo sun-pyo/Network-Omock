@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class GameRoom {
 	private int roomnum;
@@ -9,6 +11,8 @@ public class GameRoom {
 	public ArrayList<Stone> Gameprogress = new ArrayList<Stone>();
 	public boolean watching; //관전 가능 여부 
 	public boolean start; // 게임 시작 여부
+	public int interval;
+	public String turn_time,turn_player = "player1";
 
 	
 	public GameRoom(int roomnum, String roomstate, String roomname) {
@@ -95,4 +99,8 @@ public class GameRoom {
 		String info = String.format("%-45d %-45s %-20s", this.roomnum, this.roomname, this.roomstate);
 		return info; 
 	}
+	
+	public synchronized int setInterval() {
+        return this.interval--;
+    }
 }

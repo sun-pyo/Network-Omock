@@ -24,6 +24,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 import java.awt.event.ActionEvent;
 import javax.swing.SwingConstants;
@@ -302,6 +304,57 @@ public class JavaGameServer extends JFrame {
 				Logout();
 			}
 		}
+		public void start_game(GameRoom gameroom) {
+			if(gameroom.start) {
+				Timer time = new Timer();
+				int delay = 1000;
+				int period = 1000;
+				time.scheduleAtFixedRate(new TimerTask() {
+		            public void run() {
+		                if (gameroom.interval == 0) {
+		                	for(int a[]:gameroom.map) {
+								Arrays.fill(a, 0);
+							}
+							gameroom.Gameprogress.clear();
+							gameroom.start = false;
+							if(gameroom.turn_player == null) return;
+							UserService player1 = getUser(gameroom.player1);
+							UserService player2 = getUser(gameroom.player2);
+							if(gameroom.turn_player.matches("player2")) {
+								if(player1 != null) {
+									GameMsg winmsg = new GameMsg(gameroom.player1, "501", gameroom.getroomnum(), -1, -1, -1);
+									player1.WriteOneObject(winmsg);
+									gameroom.turn_player = null;
+									gameroom.interval = 0;
+								}
+								if(player2 != null) {
+									GameMsg lossmsg = new GameMsg(gameroom.player2, "502", gameroom.getroomnum(), -1, -1, -1);
+									player2.WriteOneObject(lossmsg);
+								}
+							}
+							else if(gameroom.turn_player.matches("player1")) {
+								if(player2 != null) {
+									GameMsg winmsg = new GameMsg(gameroom.player2, "501", gameroom.getroomnum(), -1, -1, -1);
+									player2.WriteOneObject(winmsg);
+									gameroom.turn_player = null;
+									gameroom.interval = 0;
+								}
+								if(player1 != null) {
+									GameMsg lossmsg = new GameMsg(gameroom.player1, "502", gameroom.getroomnum(), -1, -1, -1);
+									player1.WriteOneObject(lossmsg);
+								}
+							}
+		                    time.cancel();
+		                } else {
+		                	String time = Integer.toString(gameroom.setInterval());
+		                	System.out.println(time);
+		                	TimeMsg tm = new TimeMsg(gameroom.turn_player,"700",gameroom.getroomnum(), time);
+		                	WriteInRoomObject(tm, gameroom.getroomnum());
+            			}
+		            }
+		        }, delay, period);
+			}
+		}
 		
 		public UserService getUser(String username) {
 			if(username == null) return null;
@@ -395,6 +448,10 @@ public class JavaGameServer extends JFrame {
 						
 						GameMsg gamemsg = new GameMsg(gameroom.player1, "301", gm.roomnum, -1, -1, -1);
 						player.WriteOneObject(gamemsg);
+						gameroom.turn_player = "player1";
+						start_game(gameroom);
+						gameroom.turn_player = gameroom.getmyrole(gameroom.getotherplyer(gm.UserName));
+						gameroom.interval = Integer.parseInt(gameroom.turn_time);
 						break;
 					}
 				}
@@ -412,6 +469,8 @@ public class JavaGameServer extends JFrame {
 							}
 							gameroom.Gameprogress.clear();
 							gameroom.start = false;
+							gameroom.turn_player = null;
+							gameroom.interval = 0;
 							GameMsg winmsg = new GameMsg(gm.UserName, "501", gm.roomnum, gm.x, gm.y, gm.color);
 							this.WriteOneObject(winmsg);
 							GameMsg lossmsg = new GameMsg(gm.UserName, "502", gm.roomnum, gm.x, gm.y, gm.color);
@@ -423,6 +482,8 @@ public class JavaGameServer extends JFrame {
 						
 							GameMsg gamemsg = new GameMsg(gm.UserName, "301", gm.roomnum, gm.x, gm.y, gm.color);
 							player.WriteOneObject(gamemsg);
+							gameroom.turn_player = gameroom.getmyrole(gameroom.getotherplyer(gm.UserName));
+							gameroom.interval = Integer.parseInt(gameroom.turn_time);
 						}
 						break;
 					}
@@ -435,6 +496,8 @@ public class JavaGameServer extends JFrame {
 						
 						GameMsg gamemsg = new GameMsg(gm.UserName, "301", gm.roomnum, -1, -1, gm.color);
 						player.WriteOneObject(gamemsg);
+						gameroom.turn_player = gameroom.getmyrole(gameroom.getotherplyer(gm.UserName));
+						gameroom.interval = Integer.parseInt(gameroom.turn_time);
 					}
 				}
 			}
@@ -475,6 +538,8 @@ public class JavaGameServer extends JFrame {
 						UserService player = getUser(gameroom.getotherplyer(this.UserName));
 						if(player != null) {
 							gameroom.start = false;
+							gameroom.turn_player = null;
+							gameroom.interval = 0;
 							GameMsg winmsg = new GameMsg(gm.UserName, "501", gm.roomnum, gm.x, gm.y, gm.color);
 							player.WriteOneObject(winmsg);
 							GameMsg lossmsg = new GameMsg(gm.UserName, "502", gm.roomnum, gm.x, gm.y, gm.color);
@@ -558,11 +623,14 @@ public class JavaGameServer extends JFrame {
 						gameroom.setrole(cm.UserName);
 						gameroom.setstate();
 						gameroom.start = false;
-						gameroom.watching = Boolean.parseBoolean(cm.data);
+						gameroom.watching = cm.start;
+						gameroom.turn_time =  cm.data;
+						gameroom.interval = Integer.parseInt(gameroom.turn_time);
 						cm.roomstate = gameroom.getroomstate();
 						cm.role = gameroom.getmyrole(cm.UserName);
 						cm.player1 = gameroom.player1;
 						cm.player2 = gameroom.player2;
+						cm.data = gameroom.turn_time;
 						GameRoomList.add(gameroom);
 						WriteOneObject(cm);
 						update_msg(gameroom, "enter");
@@ -575,6 +643,7 @@ public class JavaGameServer extends JFrame {
 								cm.player1 = gameroom.player1;
 								cm.player2 = gameroom.player2;
 								if(cm.role.matches("player1") || cm.role.matches("player2")) {
+									cm.data = gameroom.turn_time;
 									cm.code = "200";
 									WriteOneObject(cm);
 								}
@@ -586,6 +655,7 @@ public class JavaGameServer extends JFrame {
 										createmsg.player1 = gameroom.player1;
 										createmsg.player2 = gameroom.player2;
 										createmsg.role = cm.role;
+										createmsg.data = gameroom.turn_time;
 										WriteOneObject(createmsg);
 										
 										for (Stone s : gameroom.Gameprogress) {
@@ -626,6 +696,8 @@ public class JavaGameServer extends JFrame {
 										WriteOneObject(cm);
 										String orderplayer = gameroom.getotherplyer(cm.UserName);
 										UserService user = getUser(cm.UserName);
+										gameroom.turn_player = null;
+										gameroom.interval = 0;
 										GameMsg winmsg = new GameMsg(cm.UserName, "501", cm.roomnum, 0, 0, 0);
 										user.WriteOneObject(winmsg);
 										gameroom.start = false;
@@ -639,6 +711,8 @@ public class JavaGameServer extends JFrame {
 										gameroom.Gameprogress.clear();
 										UserService user = getUser(cm.UserName);
 										GameMsg winmsg = new GameMsg(cm.UserName, "501", cm.roomnum, 0, 0, 0);
+										gameroom.turn_player = null;
+										gameroom.interval = 0;
 										user.WriteOneObject(winmsg);
 										gameroom.start = false;
 									}

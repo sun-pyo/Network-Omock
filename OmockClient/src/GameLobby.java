@@ -58,7 +58,10 @@ public class GameLobby extends JPanel {
 				create.btnNewButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {		
 						create.dispose();
-						ChatMsg obcm = new ChatMsg(frame.UserName, "200", Boolean.toString(create.rdbtnNewRadioButton_1.isSelected()));
+						String data = create.textField_1.getText();
+						if(!is_int(data)) data = "30";
+						ChatMsg obcm = new ChatMsg(frame.UserName, "200", data);
+						obcm.start = create.rdbtnNewRadioButton_1.isSelected();
 						obcm.roomname = create.textField.getText();
 						frame.SendObject(obcm);
 					}
@@ -134,5 +137,13 @@ public class GameLobby extends JPanel {
 			// TODO Auto-generated method stub		
 		}
 		
+	}
+	private boolean is_int(String str) {
+		try{
+		  int num = Integer.parseInt(str);
+		  return true;
+		} catch (NumberFormatException e) {
+		  return false;
+		}
 	}
 }

@@ -125,6 +125,7 @@ public class MainFrame extends JFrame{
 					ChatMsg cm;
 					InitMsg im;
 					GameMsg gm;
+					TimeMsg tm;
 					try {
 						obcm = ois.readObject();
 					} catch (ClassNotFoundException e) {
@@ -149,6 +150,35 @@ public class MainFrame extends JFrame{
 						}
 						for(String u : im.UserList) {
 							LobbyPanel.Usermodel.addElement(u);
+						}
+					}
+					else if(obcm instanceof TimeMsg) {
+						tm = (TimeMsg)obcm;
+						if(tm.code.matches("700")) {
+							for(GameFrame game : GameFrameList) {
+								if(tm.roomnum == game.roomnumber) {
+									game.player1_time.setForeground (Color.BLACK);
+									game.player2_time.setForeground (Color.BLACK);
+									game.player1_time.setFont(new Font("³ª´®°íµñ ExtraBold", Font.PLAIN, 10));
+									game.player2_time.setFont(new Font("³ª´®°íµñ ExtraBold", Font.PLAIN, 10));
+									if(tm.player.matches("player1")) {
+										if(game.role.matches("player1")) {
+											game.player1_time.setForeground (Color.RED);
+											game.player1_time.setFont(new Font("³ª´®°íµñ ExtraBold", Font.BOLD, 20));
+										}
+										game.player1_time.setText(tm.time); 
+										game.player2_time.setText(game.time);
+									}
+									else if(tm.player.matches("player2")) {
+										if(game.role.matches("player2")) {
+											game.player2_time.setForeground (Color.RED);
+											game.player2_time.setFont(new Font("³ª´®°íµñ ExtraBold", Font.BOLD, 20));
+										}
+										game.player2_time.setText(tm.time); 
+										game.player1_time.setText(game.time);
+									}
+								}
+							}
 						}
 					}
 					else
@@ -253,7 +283,7 @@ public class MainFrame extends JFrame{
 				LobbyPanel.Gameroommodel.removeElement(room);
 			for(GameFrame game : GameFrameList) {
 				if(cm.roomnum == game.roomnumber) {
-					//game.dispose();
+					game.dispose();
 					GameFrameList.remove(game);
 					break;
 				}
@@ -265,10 +295,12 @@ public class MainFrame extends JFrame{
 		switch (gm.code) {
 		case "300":
 			for(GameFrame game : GameFrameList) {
-				game.board.ResetBoard();
-				game.board.endpanel.setVisible(false);
-				game.board.startpanel.setVisible(false);
-				game.state = 1;
+				if(gm.roomnum == game.roomnumber) {
+					game.board.ResetBoard();
+					game.board.endpanel.setVisible(false);
+					game.board.startpanel.setVisible(false);
+					game.state = 1;
+				}
 			}
 			break;
 		case "301":  // your turn
@@ -308,6 +340,8 @@ public class MainFrame extends JFrame{
 				if(gm.roomnum == game.roomnumber) {
 					game.state = 0;
 					game.turn = 0;
+					game.board.movex = -1;
+					game.board.movey = -1;
 					game.board.endpanel.setVisible(true);
 					game.board.endLabel.setText("½Â¸®");
 				}
@@ -318,6 +352,8 @@ public class MainFrame extends JFrame{
 				if(gm.roomnum == game.roomnumber) {
 					game.state = 0;
 					game.turn = 0;
+					game.board.movex = -1;
+					game.board.movey = -1;
 					game.board.endpanel.setVisible(true);
 					game.board.endLabel.setText("ÆÐ¹è");
 				}
@@ -328,6 +364,8 @@ public class MainFrame extends JFrame{
 				if(gm.roomnum == game.roomnumber) {
 					game.state = 0;
 					game.turn = 0;
+					game.board.movex = -1;
+					game.board.movey = -1;
 					game.board.endpanel.setVisible(true);
 					game.board.endLabel.setText("¹«½ÂºÎ");
 				}
@@ -354,7 +392,7 @@ public class MainFrame extends JFrame{
 		return null;
 	}
 	private void enterGameRoom(ChatMsg cm) {
-		GameFrame gameframe = new GameFrame(frame, cm.roomnum, cm.role);
+		GameFrame gameframe = new GameFrame(frame, cm.roomnum, cm.role, cm.data);
 		if(cm.role.matches("observer")) {
 			gameframe.turn = 0;
 			gameframe.state = 0;
