@@ -110,10 +110,12 @@ public class GameLobby extends JPanel {
 		public void mouseClicked(MouseEvent e) {
 			if(e.getClickCount() == 2) {
 				GameRoom gameroom= (GameRoom) Gameroomlist.getSelectedValue();
-				ChatMsg obcm = new ChatMsg(frame.UserName, "201", "enter Room");
-				obcm.roomnum = gameroom.getroomnum();
-				obcm.roomname = gameroom.getroomname();
-				frame.SendObject(obcm);
+				if(gameroom != null) {
+					ChatMsg obcm = new ChatMsg(frame.UserName, "201", "enter Room");
+					obcm.roomnum = gameroom.getroomnum();
+					obcm.roomname = gameroom.getroomname();
+					frame.SendObject(obcm);
+				}
 			}
 		}
 

@@ -101,6 +101,6 @@ public class GameRoom {
 	}
 	
 	public synchronized int setInterval() {
-        return this.interval--;
+        return --this.interval;
     }
 }

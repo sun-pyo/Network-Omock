@@ -239,7 +239,6 @@ public class MainFrame extends JFrame{
 						game.board.startpanel.setVisible(false);
 					}else {
 						game.state = 0;
-						game.board.startpanel.setVisible(true);
 					}
 					
 					if(cm.data.matches("enter")) {
@@ -267,11 +266,13 @@ public class MainFrame extends JFrame{
 			if(gameroom != null) {
 				LobbyPanel.Gameroommodel.removeElement(gameroom);
 			}
+			if(cm.roomstate.matches("none")) break;
 			LobbyPanel.Gameroommodel.addElement(new GameRoom(cm.roomnum, cm.roomstate, cm.roomname));
 			break;
 		case "205":
 			for(GameFrame game : GameFrameList) {
 				if(cm.roomnum == game.roomnumber) {
+					game.dispose();
 					GameFrameList.remove(game);
 					break;
 				}
@@ -336,7 +337,9 @@ public class MainFrame extends JFrame{
 			}
 			break;
 		case "501":
+			System.out.println("gameroom : " + gm.roomnum);
 			for(GameFrame game : GameFrameList) {
+				System.out.println(game.roomnumber + "   " + gm.roomnum);
 				if(gm.roomnum == game.roomnumber) {
 					game.state = 0;
 					game.turn = 0;

@@ -141,7 +141,6 @@ public class GameFrame extends JFrame{
 				ChatMsg msg = new ChatMsg(frame.UserName, "205", "Ήζ Επΐε");
 				msg.roomnum = roomnumber;
 				frame.SendObject(msg);
-				dispose();
 			}
 		});
 		contentPane.add(btnNewButton);

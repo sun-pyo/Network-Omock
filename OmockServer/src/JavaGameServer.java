@@ -312,6 +312,7 @@ public class JavaGameServer extends JFrame {
 				time.scheduleAtFixedRate(new TimerTask() {
 		            public void run() {
 		                if (gameroom.interval == 0) {
+		                	time.cancel();
 		                	for(int a[]:gameroom.map) {
 								Arrays.fill(a, 0);
 							}
@@ -344,10 +345,8 @@ public class JavaGameServer extends JFrame {
 									player1.WriteOneObject(lossmsg);
 								}
 							}
-		                    time.cancel();
 		                } else {
 		                	String time = Integer.toString(gameroom.setInterval());
-		                	System.out.println(time);
 		                	TimeMsg tm = new TimeMsg(gameroom.turn_player,"700",gameroom.getroomnum(), time);
 		                	WriteInRoomObject(tm, gameroom.getroomnum());
             			}
@@ -445,13 +444,17 @@ public class JavaGameServer extends JFrame {
 						gameroom.start = true;
 						WriteInRoomObject(gm, gm.roomnum);
 						UserService player = getUser(gameroom.player1);
-						
+						if(player == null) {
+							GameMsg winmsg = new GameMsg(gm.UserName, "501", gm.roomnum, gm.x, gm.y, gm.color);
+							this.WriteOneObject(winmsg);
+						}
 						GameMsg gamemsg = new GameMsg(gameroom.player1, "301", gm.roomnum, -1, -1, -1);
 						player.WriteOneObject(gamemsg);
 						gameroom.turn_player = "player1";
 						start_game(gameroom);
-						gameroom.turn_player = gameroom.getmyrole(gameroom.getotherplyer(gm.UserName));
 						gameroom.interval = Integer.parseInt(gameroom.turn_time);
+						TimeMsg tm = new TimeMsg(gameroom.turn_player,"700",gameroom.getroomnum(), gameroom.turn_time);
+	                	WriteInRoomObject(tm, gameroom.getroomnum());
 						break;
 					}
 				}
@@ -484,6 +487,8 @@ public class JavaGameServer extends JFrame {
 							player.WriteOneObject(gamemsg);
 							gameroom.turn_player = gameroom.getmyrole(gameroom.getotherplyer(gm.UserName));
 							gameroom.interval = Integer.parseInt(gameroom.turn_time);
+							TimeMsg tm = new TimeMsg(gameroom.turn_player,"700",gameroom.getroomnum(), gameroom.turn_time);
+		                	WriteInRoomObject(tm, gameroom.getroomnum());
 						}
 						break;
 					}
@@ -498,6 +503,8 @@ public class JavaGameServer extends JFrame {
 						player.WriteOneObject(gamemsg);
 						gameroom.turn_player = gameroom.getmyrole(gameroom.getotherplyer(gm.UserName));
 						gameroom.interval = Integer.parseInt(gameroom.turn_time);
+						TimeMsg tm = new TimeMsg(gameroom.turn_player,"700",gameroom.getroomnum(), gameroom.turn_time);
+	                	WriteInRoomObject(tm, gameroom.getroomnum());
 					}
 				}
 			}
@@ -626,13 +633,15 @@ public class JavaGameServer extends JFrame {
 						gameroom.watching = cm.start;
 						gameroom.turn_time =  cm.data;
 						gameroom.interval = Integer.parseInt(gameroom.turn_time);
-						cm.roomstate = gameroom.getroomstate();
-						cm.role = gameroom.getmyrole(cm.UserName);
-						cm.player1 = gameroom.player1;
-						cm.player2 = gameroom.player2;
-						cm.data = gameroom.turn_time;
+						ChatMsg cm2 = new ChatMsg(cm.UserName, "200", gameroom.turn_time);
+						cm2.roomnum = gameroom.getroomnum();
+						cm2.roomname = gameroom.getroomname();
+						cm2.roomstate = gameroom.getroomstate();
+						cm2.role = gameroom.getmyrole(cm.UserName);
+						cm2.player1 = gameroom.player1;
+						cm2.player2 = gameroom.player2;
 						GameRoomList.add(gameroom);
-						WriteOneObject(cm);
+						WriteOneObject(cm2);
 						update_msg(gameroom, "enter");
 					}
 					else if(cm.code.matches("201")) {   // 방 입장
@@ -686,7 +695,8 @@ public class JavaGameServer extends JFrame {
 					else if(cm.code.matches("205")) {  // 게임방 퇴장 
 						for(GameRoom gameroom : GameRoomList) {
 							if(gameroom.getroomnum() == cm.roomnum) {
-								
+								this.WriteOneObject(cm);
+								String orderplayer = gameroom.getotherplyer(cm.UserName);
 								if(gameroom.getmyrole(cm.UserName).matches("player1")) {
 									if(gameroom.start) {
 										for(int a[]:gameroom.map) {
@@ -694,8 +704,7 @@ public class JavaGameServer extends JFrame {
 										}
 										gameroom.Gameprogress.clear();
 										WriteOneObject(cm);
-										String orderplayer = gameroom.getotherplyer(cm.UserName);
-										UserService user = getUser(cm.UserName);
+										UserService user = getUser(orderplayer);
 										gameroom.turn_player = null;
 										gameroom.interval = 0;
 										GameMsg winmsg = new GameMsg(cm.UserName, "501", cm.roomnum, 0, 0, 0);
@@ -709,7 +718,7 @@ public class JavaGameServer extends JFrame {
 											Arrays.fill(a, 0);
 										}
 										gameroom.Gameprogress.clear();
-										UserService user = getUser(cm.UserName);
+										UserService user = getUser(orderplayer);
 										GameMsg winmsg = new GameMsg(cm.UserName, "501", cm.roomnum, 0, 0, 0);
 										gameroom.turn_player = null;
 										gameroom.interval = 0;
@@ -731,7 +740,6 @@ public class JavaGameServer extends JFrame {
 									chatmsg.roomnum = gameroom.getroomnum();
 									WriteAllObject(chatmsg);
 									GameRoomList.remove(gameroom);
-									break;
 								}
 								update_msg(gameroom,"exit");
 								
@@ -746,7 +754,7 @@ public class JavaGameServer extends JFrame {
 							}
 						}
 					}
-					else { // 300, 500, ... 기타 object는 모두 방송한다.
+					else { //  ... 기타 object는 모두 방송한다.
 						WriteAllObject(cm);
 					} 
 				} catch (IOException e) {

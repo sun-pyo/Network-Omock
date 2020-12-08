@@ -71,6 +71,10 @@ public class Board extends JPanel {
 		btnNewButton.setBounds(101, 97, 91, 23);
 		endpanel.add(btnNewButton);
 		
+		//StartButton.setEnabled(false);
+		
+		endpanel.setVisible(false);
+		
 		startpanel = new JPanel();
 		startpanel.setBackground(new Color(218, 165, 32));
 		startpanel.setBounds(137, 195, 287, 152);
@@ -94,7 +98,6 @@ public class Board extends JPanel {
 				ChatMsg msg = new ChatMsg(frame.frame.UserName, "205", "¹æ ÅğÀå");
 				msg.roomnum = frame.roomnumber;
 				frame.frame.SendObject(msg);
-				frame.dispose();
 			}
 		});
 		exitButton.setBackground(SystemColor.menu);
@@ -136,10 +139,6 @@ public class Board extends JPanel {
 		panel.add(noButton);
 		panel.setVisible(false);
 		startpanel.setVisible(true);
-		
-		//StartButton.setEnabled(false);
-		
-		endpanel.setVisible(false);
 		
 	}
 	
@@ -287,7 +286,6 @@ public class Board extends JPanel {
 				count++;
 				break;
 			}
-			System.out.println(check_6);
 			if(check_6 >= 5) {
 				return 6;
 			}
