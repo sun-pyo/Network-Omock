@@ -358,7 +358,6 @@ public class Board extends JPanel {
 				count++;
 				break;
 			}
-			System.out.println(check_6);
 			if(check_6 >= 5) {
 				return 6;
 			}
@@ -434,7 +433,6 @@ public class Board extends JPanel {
 				count++;
 				break;
 			}
-			System.out.println(check_6);
 			if(check_6 >= 5) {
 				return 6;
 			}
@@ -510,7 +508,7 @@ public class Board extends JPanel {
 				count++;
 				break;
 			}
-			System.out.println(check_6);
+		
 			if(check_6 >= 5) {
 				return 6;
 			}

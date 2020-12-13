@@ -347,6 +347,10 @@ public class GameFrame extends JFrame{
 					board.movey = y;
 					board.repaint();
 				}
+			}else {
+				board.movex = -1;
+				board.movey = -1;
+				board.repaint();
 			}
 		}
 

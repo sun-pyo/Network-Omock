@@ -441,13 +441,12 @@ public class JavaGameServer extends JFrame {
 				// Game Start
 				for(GameRoom gameroom : GameRoomList) {
 					if(gm.roomnum == gameroom.getroomnum()) {
+						if(gameroom.getotherplyer(gm.UserName) == null) {
+							break;
+						}
 						gameroom.start = true;
 						WriteInRoomObject(gm, gm.roomnum);
 						UserService player = getUser(gameroom.player1);
-						if(player == null) {
-							GameMsg winmsg = new GameMsg(gm.UserName, "501", gm.roomnum, gm.x, gm.y, gm.color);
-							this.WriteOneObject(winmsg);
-						}
 						GameMsg gamemsg = new GameMsg(gameroom.player1, "301", gm.roomnum, -1, -1, -1);
 						player.WriteOneObject(gamemsg);
 						gameroom.turn_player = "player1";
@@ -460,13 +459,14 @@ public class JavaGameServer extends JFrame {
 				}
 			}
 			else if(gm.code.matches("302")) { //착수
-				WriteInRoomObject(gm, gm.roomnum);
 				for(GameRoom gameroom : GameRoomList) {
 					if(gm.roomnum == gameroom.getroomnum()) {
+						WriteInRoomObject(gm, gm.roomnum);
 						gameroom.map[gm.y][gm.x] = gm.color;
 						gameroom.Gameprogress.add(new Stone(gm.x, gm.y, gm.color));
 						UserService player = getUser(gameroom.getotherplyer(this.UserName));
 						if(end_check(gm, gameroom)) {
+							System.out.println(gm.UserName);
 							for(int a[]:gameroom.map) {
 								Arrays.fill(a, 0);
 							}
@@ -482,7 +482,7 @@ public class JavaGameServer extends JFrame {
 						}
 						if(player != null)
 						{
-						
+							
 							GameMsg gamemsg = new GameMsg(gm.UserName, "301", gm.roomnum, gm.x, gm.y, gm.color);
 							player.WriteOneObject(gamemsg);
 							gameroom.turn_player = gameroom.getmyrole(gameroom.getotherplyer(gm.UserName));
@@ -496,47 +496,55 @@ public class JavaGameServer extends JFrame {
 			}
 			else if(gm.code.matches("303")) {
 				for(GameRoom gameroom : GameRoomList) {
-					UserService player = getUser(gameroom.getotherplyer(gm.UserName));
-					if(player != null) {
-						
-						GameMsg gamemsg = new GameMsg(gm.UserName, "301", gm.roomnum, -1, -1, gm.color);
-						player.WriteOneObject(gamemsg);
-						gameroom.turn_player = gameroom.getmyrole(gameroom.getotherplyer(gm.UserName));
-						gameroom.interval = Integer.parseInt(gameroom.turn_time);
-						TimeMsg tm = new TimeMsg(gameroom.turn_player,"700",gameroom.getroomnum(), gameroom.turn_time);
-	                	WriteInRoomObject(tm, gameroom.getroomnum());
+					if(gameroom.getroomnum() == gm.roomnum) {
+						UserService player = getUser(gameroom.getotherplyer(gm.UserName));
+						if(player != null) {
+							GameMsg gamemsg = new GameMsg(gm.UserName, "301", gm.roomnum, -1, -1, gm.color);
+							player.WriteOneObject(gamemsg);
+							gameroom.turn_player = gameroom.getmyrole(gameroom.getotherplyer(gm.UserName));
+							gameroom.interval = Integer.parseInt(gameroom.turn_time);
+							TimeMsg tm = new TimeMsg(gameroom.turn_player,"700",gameroom.getroomnum(), gameroom.turn_time);
+		                	WriteInRoomObject(tm, gameroom.getroomnum());
+						}
 					}
 				}
 			}
 			else if(gm.code.matches("400")) {
 				for(GameRoom gameroom : GameRoomList) {
-					UserService player = getUser(gameroom.getotherplyer(gm.UserName));
-					if(player != null) player.WriteOneObject(gm);
+					if(gameroom.getroomnum() == gm.roomnum) {
+						UserService player = getUser(gameroom.getotherplyer(gm.UserName));
+						if(player != null) player.WriteOneObject(gm);
+					}
 				}
 			}
 			else if(gm.code.matches("401")) {
 				for(GameRoom gameroom : GameRoomList) {
-					UserService player1 = getUser(gameroom.getotherplyer(gameroom.player1));
-					UserService player2 = getUser(gameroom.getotherplyer(gameroom.player2));
 					
-					GameMsg gm2 = new GameMsg(gm.UserName, "503", gm.roomnum, -1, -1, -1);
-					
-					for(int a[]:gameroom.map) {
-						Arrays.fill(a, 0);
+					if(gameroom.getroomnum() == gm.roomnum) {
+						UserService player1 = getUser(gameroom.getotherplyer(gameroom.player1));
+						UserService player2 = getUser(gameroom.getotherplyer(gameroom.player2));
+						
+						GameMsg gm2 = new GameMsg(gm.UserName, "503", gm.roomnum, -1, -1, -1);
+						
+						for(int a[]:gameroom.map) {
+							Arrays.fill(a, 0);
+						}
+						gameroom.Gameprogress.clear();
+						
+						if(player1 != null) player1.WriteOneObject(gm2);
+						if(player2 != null) player2.WriteOneObject(gm2);
 					}
-					gameroom.Gameprogress.clear();
-					
-					if(player1 != null) player1.WriteOneObject(gm2);
-					if(player2 != null) player2.WriteOneObject(gm2);
 				}
 			}
 			else if(gm.code.matches("402")) {
 				for(GameRoom gameroom : GameRoomList) {
-					UserService player1 = getUser(gameroom.getotherplyer(gameroom.player1));
-					UserService player2 = getUser(gameroom.getotherplyer(gameroom.player2));
-					
-					if(player1 != null) player1.WriteOneObject(gm);
-					if(player2 != null) player2.WriteOneObject(gm);
+					if(gameroom.getroomnum() == gm.roomnum) {
+						UserService player1 = getUser(gameroom.getotherplyer(gameroom.player1));
+						UserService player2 = getUser(gameroom.getotherplyer(gameroom.player2));
+						
+						if(player1 != null) player1.WriteOneObject(gm);
+						if(player2 != null) player2.WriteOneObject(gm);
+					}
 				}
 			}
 			else if(gm.code.matches("403")) {
@@ -647,6 +655,9 @@ public class JavaGameServer extends JFrame {
 					else if(cm.code.matches("201")) {   // 방 입장
 						for(GameRoom gameroom : GameRoomList) {
 							if(gameroom.getroomnum() == cm.roomnum) {
+								if(gameroom.getroomstate().matches("입장불가")) {
+									break;
+								}
 								gameroom.setrole(cm.UserName);
 								cm.role = gameroom.getmyrole(cm.UserName);
 								cm.player1 = gameroom.player1;

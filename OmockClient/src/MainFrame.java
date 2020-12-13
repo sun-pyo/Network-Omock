@@ -201,7 +201,7 @@ public class MainFrame extends JFrame{
 	}
 	
 	private void DoChatMsg(ChatMsg cm) {
-		System.out.println(cm.UserName + " code : " + cm.code + " player1 " +cm.player1 + " player2 " +cm.player2 );
+		//System.out.println(cm.UserName + " code : " + cm.code + " player1 " +cm.player1 + " player2 " +cm.player2 );
 		switch (cm.code) {
 		case "101":
 			if(!UserName.matches(cm.UserName))
@@ -305,7 +305,6 @@ public class MainFrame extends JFrame{
 			}
 			break;
 		case "301":  // your turn
-			//System.out.println("username : " + gm.UserName + "x = " + gm.x + " y =" + gm.y + " color" + gm.color);
 			for(GameFrame game : GameFrameList) {
 				if(gm.roomnum == game.roomnumber) {
 					game.turn = 1;
@@ -315,6 +314,7 @@ public class MainFrame extends JFrame{
 		case "302":  // Âø¼ö
 			for(GameFrame game : GameFrameList) {
 				if(gm.roomnum == game.roomnumber) {
+					//System.out.println(UserName + gm.code +" x : " + gm.x+ " y " + gm.y);
 					game.board.AddGameprogress(gm.x, gm.y, gm.color);
 				}
 			}
@@ -337,9 +337,9 @@ public class MainFrame extends JFrame{
 			}
 			break;
 		case "501":
-			System.out.println("gameroom : " + gm.roomnum);
+			//System.out.println("gameroom : " + gm.roomnum);
 			for(GameFrame game : GameFrameList) {
-				System.out.println(game.roomnumber + "   " + gm.roomnum);
+				//System.out.println(game.roomnumber + "   " + gm.roomnum);
 				if(gm.roomnum == game.roomnumber) {
 					game.state = 0;
 					game.turn = 0;

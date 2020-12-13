@@ -22,10 +22,10 @@ public class GameRoom {
 	}
 	
 	public String getotherplyer(String myname) {
-		if(player1.matches(myname)) {
+		if(player1!= null && player1.matches(myname)) {
 			return player2;
 		}
-		else if(player2.matches(myname)) {
+		else if(player2 != null && player2.matches(myname)) {
 			return player1;
 		}
 		return null;
